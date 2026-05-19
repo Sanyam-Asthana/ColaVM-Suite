@@ -1,49 +1,67 @@
 use std::process;
 
 enum Opcode {
-    Push = 1,
-    Pop = 2,
-    Top = 3,
-    Add = 4,
-    Sub = 5,
-    Mul = 6,
-    Div = 7,
-    Mod = 8,
-    Char = 9,
-    Print = 10,
-    Jump = 11,
-    Jez = 12,
-    Jeq = 13,
-    Jgt = 14,
-    Jlt = 15,
-    Jge = 16,
-    Jle = 17,
-    Store = 18,
-    Load = 19,
+    Push8 = 1,
+    Push32 = 2,
+    Pop = 3,
+    Top = 4,
+    Add = 5,
+    Sub = 6,
+    Mul = 7,
+    Div = 8,
+    Mod = 9,
+    Char = 10,
+    Print8 = 11,
+    Print32 = 12,
+    Jump8 = 13,
+    Jez8 = 14,
+    Jeq8 = 15,
+    Jgt8 = 16,
+    Jlt8 = 17,
+    Jge8 = 18,
+    Jle8 = 19,
+    Jump32 = 20,
+    Jez32 = 21,
+    Jeq32 = 22,
+    Jgt32 = 23,
+    Jlt32 = 24,
+    Jge32 = 25,
+    Jle32 = 26,
+    Store = 27,
+    Load = 28,
 }
 
 impl Opcode {
     fn from_u8(byte: u8) -> Option<Opcode> {
         match byte {
-            1 => Some(Opcode::Push),
-            2 => Some(Opcode::Pop),
-            3 => Some(Opcode::Top),
-            4 => Some(Opcode::Add),
-            5 => Some(Opcode::Sub),
-            6 => Some(Opcode::Mul),
-            7 => Some(Opcode::Div),
-            8 => Some(Opcode::Mod),
-            9 => Some(Opcode::Char),
-            10 => Some(Opcode::Print),
-            11 => Some(Opcode::Jump),
-            12 => Some(Opcode::Jez),
-            13 => Some(Opcode::Jeq),
-            14 => Some(Opcode::Jgt),
-            15 => Some(Opcode::Jlt),
-            16 => Some(Opcode::Jge),
-            17 => Some(Opcode::Jle),
-            18 => Some(Opcode::Store),
-            19 => Some(Opcode::Load),
+            1 => Some(Opcode::Push8),
+            2 => Some(Opcode::Push32),
+            3 => Some(Opcode::Pop),
+            4 => Some(Opcode::Top),
+            5 => Some(Opcode::Add),
+            6 => Some(Opcode::Sub),
+            7 => Some(Opcode::Mul),
+            8 => Some(Opcode::Div),
+            9 => Some(Opcode::Mod),
+            10 => Some(Opcode::Char),
+            11 => Some(Opcode::Print8),
+            12 => Some(Opcode::Print32),
+            13 => Some(Opcode::Jump8),
+            14 => Some(Opcode::Jez8),
+            15 => Some(Opcode::Jeq8),
+            16 => Some(Opcode::Jgt8),
+            17 => Some(Opcode::Jlt8),
+            18 => Some(Opcode::Jge8),
+            19 => Some(Opcode::Jle8),
+            20 => Some(Opcode::Jump32),
+            21 => Some(Opcode::Jez32),
+            22 => Some(Opcode::Jeq32),
+            23 => Some(Opcode::Jgt32),
+            24 => Some(Opcode::Jlt32),
+            25 => Some(Opcode::Jge32),
+            26 => Some(Opcode::Jle32),
+            27 => Some(Opcode::Store),
+            28 => Some(Opcode::Load),
             _ => None,
         }
     }
@@ -58,48 +76,20 @@ fn print_err(error_msg: &str, pc: usize) {
     process::exit(0x01);
 }
 
+fn pop(stack: &mut Vec<i32>, pc: usize) -> i32 {
+    match stack.pop() {
+        Some(x) => x,
+        None => {
+            print_err("stack underflow", pc);
+            0
+        }
+    }
+}
+
 fn main() {
     let mut stack: Vec<i32> = Vec::with_capacity(1024);
 
-    let program2: Vec<u8> = vec![
-        1, 5, 0, 0, 0, 1, 5, 0, 0, 0, 13, 21, 0, 0, 0, 10, 1, 0, 0, 0, 48, 10, 1, 0, 0, 0, 49,
-    ];
-
-    let program: Vec<u8> = vec![
-        // Initialize: var[0] = 0 (a), var[1] = 1 (b), var[2] = 5 (counter)
-        1, 0, 0, 0, 0, // 0:  PUSH 0
-        18, 0, // 5:  STORE var[0]  (a = 0)
-        1, 1, 0, 0, 0, // 7:  PUSH 1
-        18, 1, // 12: STORE var[1]  (b = 1)
-        1, 5, 0, 0, 0, // 14: PUSH 5
-        18, 2, // 19: STORE var[2]  (counter = 5)
-        // Loop start (pc = 21): if counter == 0, jump to end
-        19, 2, // 21: LOAD var[2]
-        1, 0, 0, 0, 0, // 23: PUSH 0
-        13, 63, 0, 0, 0, // 28: JEQ 62  (if counter == 0, jump to end)
-        // Print var[0] (a) using TOP
-        19, 0, // 33: LOAD var[0]
-        3, // 35: TOP  (prints top of stack)
-        2, // 36: POP
-        // Compute next: temp = a + b
-        19, 0, // 37: LOAD var[0]  (a)
-        19, 1, // 39: LOAD var[1]  (b)
-        4, // 41: ADD  → a+b on stack
-        // a = b
-        19, 1, // 42: LOAD var[1]
-        18, 0, // 44: STORE var[0]
-        // b = a+b (result still on stack from ADD)
-        18, 1, // 46: STORE var[1]
-        // counter -= 1
-        19, 2, // 48: LOAD var[2]
-        1, 1, 0, 0, 0, // 50: PUSH 1
-        5, // 55: SUB  (counter - 1)
-        18, 2, // 56: STORE var[2]
-        // Jump back to loop start
-        11, 21, 0, 0, 0, // 58: JUMP 21
-        // End (pc = 63)
-        1, 0, 0, 0, 0, // 63: PUSH 0  (no-op landing pad)
-    ];
+    let program: Vec<u8> = vec![11, 2, 72, 105];
 
     let mut vars: [i32; 256] = [0; 256];
 
@@ -109,7 +99,18 @@ fn main() {
         let raw_byte: u8 = program[pc];
 
         match Opcode::from_u8(raw_byte) {
-            Some(Opcode::Push) => {
+            Some(Opcode::Push8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let value = i8::from_le_bytes(bytes);
+
+                    stack.push(value as i32);
+                    pc += 2;
+                } else {
+                    print_err("malformed argument for PUSH", pc);
+                }
+            }
+            Some(Opcode::Push32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let value = i32::from_le_bytes(bytes);
@@ -282,7 +283,26 @@ fn main() {
                 let offset: usize = buf.into();
                 pc += offset + 1;
             }
-            Some(Opcode::Print) => {
+            Some(Opcode::Print8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let length = i8::from_le_bytes(bytes) as usize;
+
+                    if pc + 2 + length <= program.len() {
+                        for i in 0..length {
+                            print!("{}", (program[pc + 2 + (i as usize)]) as char);
+                        }
+
+                        let offset: usize = length as usize;
+                        pc += 2 + offset;
+                    } else {
+                        print_err("unexpected end of file", pc);
+                    }
+                } else {
+                    print_err("missing length argument for PRINT", pc);
+                }
+            }
+            Some(Opcode::Print32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let length = i32::from_le_bytes(bytes) as usize;
@@ -301,7 +321,7 @@ fn main() {
                     print_err("missing length argument for PRINT", pc);
                 }
             }
-            Some(Opcode::Jump) => {
+            Some(Opcode::Jump32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
@@ -311,7 +331,7 @@ fn main() {
                     print_err("missing jumping address for JUMP", pc);
                 }
             }
-            Some(Opcode::Jez) => {
+            Some(Opcode::Jez32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
@@ -338,7 +358,7 @@ fn main() {
                     print_err("missing jumping address for JEZ", pc);
                 }
             }
-            Some(Opcode::Jeq) => {
+            Some(Opcode::Jeq32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
@@ -373,7 +393,7 @@ fn main() {
                     print_err("missing jumping address for JEZ", pc);
                 }
             }
-            Some(Opcode::Jgt) => {
+            Some(Opcode::Jgt32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
@@ -408,7 +428,7 @@ fn main() {
                     print_err("missing jumping address for JEZ", pc);
                 }
             }
-            Some(Opcode::Jlt) => {
+            Some(Opcode::Jlt32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
@@ -443,7 +463,7 @@ fn main() {
                     print_err("missing jumping address for JEZ", pc);
                 }
             }
-            Some(Opcode::Jge) => {
+            Some(Opcode::Jge32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
@@ -478,7 +498,7 @@ fn main() {
                     print_err("missing jumping address for JEZ", pc);
                 }
             }
-            Some(Opcode::Jle) => {
+            Some(Opcode::Jle32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
