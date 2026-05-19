@@ -29,6 +29,19 @@ enum Opcode {
     Jle32 = 26,
     Store = 27,
     Load = 28,
+    End = 29,
+    PushConst0 = 30,
+    PushConst1 = 31,
+    PushConst2 = 32,
+    PushConst3 = 33,
+    PushConst4 = 34,
+    PushConst5 = 35,
+    PushConst6 = 36,
+    PushConst7 = 37,
+    PushConst8 = 38,
+    PushConst9 = 39,
+    Inc = 40,
+    Dec = 41,
 }
 
 impl Opcode {
@@ -62,6 +75,19 @@ impl Opcode {
             26 => Some(Opcode::Jle32),
             27 => Some(Opcode::Store),
             28 => Some(Opcode::Load),
+            29 => Some(Opcode::End),
+            30 => Some(Opcode::PushConst0),
+            31 => Some(Opcode::PushConst1),
+            32 => Some(Opcode::PushConst2),
+            33 => Some(Opcode::PushConst3),
+            34 => Some(Opcode::PushConst4),
+            35 => Some(Opcode::PushConst5),
+            36 => Some(Opcode::PushConst6),
+            37 => Some(Opcode::PushConst7),
+            38 => Some(Opcode::PushConst8),
+            39 => Some(Opcode::PushConst9),
+            40 => Some(Opcode::Inc),
+            41 => Some(Opcode::Dec),
             _ => None,
         }
     }
@@ -89,7 +115,7 @@ fn pop(stack: &mut Vec<i32>, pc: usize) -> i32 {
 fn main() {
     let mut stack: Vec<i32> = Vec::with_capacity(1024);
 
-    let program: Vec<u8> = vec![11, 2, 72, 105];
+    let program: Vec<u8> = vec![35, 4, 41, 4, 41, 4, 41, 4, 41, 4, 41, 4];
 
     let mut vars: [i32; 256] = [0; 256];
 
@@ -129,7 +155,7 @@ fn main() {
                 if stack.len() == 0 {
                     print_err("stack underflow", pc);
                 }
-                println!("{}", stack[stack.len() - 1]);
+                print!("{}", stack[stack.len() - 1]);
                 pc += 1;
             }
             Some(Opcode::Add) => {
@@ -199,7 +225,10 @@ fn main() {
                 let mut chars_to_print: Vec<char> = Vec::new();
 
                 while length != 0 {
-                    chars_to_print.push((pop(&mut stack, pc) as u8) as char);
+                    let raw_val = pop(&mut stack, pc);
+
+                    let c = std::char::from_u32(raw_val as u32).unwrap_or('?');
+                    chars_to_print.push(c);
                     length -= 1;
                 }
 
@@ -273,7 +302,7 @@ fn main() {
                     let bytes: [u8; 1] = byte_slice.try_into().unwrap();
                     let new_pc = i8::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let x: i32 = pop(&mut stack, pc);
 
                         if x == 0 {
@@ -293,7 +322,7 @@ fn main() {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let x: i32 = pop(&mut stack, pc);
 
                         if x == 0 {
@@ -313,7 +342,7 @@ fn main() {
                     let bytes: [u8; 1] = byte_slice.try_into().unwrap();
                     let new_pc = i8::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -334,7 +363,7 @@ fn main() {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -355,7 +384,7 @@ fn main() {
                     let bytes: [u8; 1] = byte_slice.try_into().unwrap();
                     let new_pc = i8::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -376,7 +405,7 @@ fn main() {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -397,7 +426,7 @@ fn main() {
                     let bytes: [u8; 1] = byte_slice.try_into().unwrap();
                     let new_pc = i8::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -418,7 +447,7 @@ fn main() {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -439,7 +468,7 @@ fn main() {
                     let bytes: [u8; 1] = byte_slice.try_into().unwrap();
                     let new_pc = i8::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -460,7 +489,7 @@ fn main() {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -481,7 +510,7 @@ fn main() {
                     let bytes: [u8; 1] = byte_slice.try_into().unwrap();
                     let new_pc = i8::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -502,7 +531,7 @@ fn main() {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
-                    if stack.len() >= 1 {
+                    if stack.len() >= 2 {
                         let a: i32 = pop(&mut stack, pc);
                         let b: i32 = pop(&mut stack, pc);
 
@@ -535,6 +564,59 @@ fn main() {
                 } else {
                     print_err("missing argument for LOAD", pc);
                 }
+            }
+            Some(Opcode::End) => {
+                process::exit(0);
+            }
+            Some(Opcode::PushConst0) => {
+                stack.push(0);
+                pc += 1;
+            }
+            Some(Opcode::PushConst1) => {
+                stack.push(1);
+                pc += 1;
+            }
+            Some(Opcode::PushConst2) => {
+                stack.push(2);
+                pc += 1;
+            }
+            Some(Opcode::PushConst3) => {
+                stack.push(3);
+                pc += 1;
+            }
+            Some(Opcode::PushConst4) => {
+                stack.push(4);
+                pc += 1;
+            }
+            Some(Opcode::PushConst5) => {
+                stack.push(5);
+                pc += 1;
+            }
+            Some(Opcode::PushConst6) => {
+                stack.push(6);
+                pc += 1;
+            }
+            Some(Opcode::PushConst7) => {
+                stack.push(7);
+                pc += 1;
+            }
+            Some(Opcode::PushConst8) => {
+                stack.push(8);
+                pc += 1;
+            }
+            Some(Opcode::PushConst9) => {
+                stack.push(9);
+                pc += 1;
+            }
+            Some(Opcode::Inc) => {
+                let x = pop(&mut stack, pc);
+                stack.push(x + 1);
+                pc += 1;
+            }
+            Some(Opcode::Dec) => {
+                let x = pop(&mut stack, pc);
+                stack.push(x - 1);
+                pc += 1;
             }
             None => {
                 print_err("unrecognized bytecode", pc);
