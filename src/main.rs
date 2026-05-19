@@ -134,8 +134,8 @@ fn main() {
             }
             Some(Opcode::Add) => {
                 if stack.len() >= 2 {
-                    let mut a: i32 = pop(&mut stack, pc);
-                    let mut b: i32 = pop(&mut stack, pc);
+                    let a: i32 = pop(&mut stack, pc);
+                    let b: i32 = pop(&mut stack, pc);
 
                     stack.push(a + b);
                 } else {
@@ -145,8 +145,8 @@ fn main() {
             }
             Some(Opcode::Sub) => {
                 if stack.len() >= 2 {
-                    let mut a: i32 = pop(&mut stack, pc);
-                    let mut b: i32 = pop(&mut stack, pc);
+                    let a: i32 = pop(&mut stack, pc);
+                    let b: i32 = pop(&mut stack, pc);
 
                     stack.push(b - a);
                 } else {
@@ -156,8 +156,8 @@ fn main() {
             }
             Some(Opcode::Mul) => {
                 if stack.len() >= 2 {
-                    let mut a: i32 = pop(&mut stack, pc);
-                    let mut b: i32 = pop(&mut stack, pc);
+                    let a: i32 = pop(&mut stack, pc);
+                    let b: i32 = pop(&mut stack, pc);
 
                     stack.push(a * b);
                 } else {
@@ -167,8 +167,8 @@ fn main() {
             }
             Some(Opcode::Div) => {
                 if stack.len() >= 2 {
-                    let mut a: i32 = pop(&mut stack, pc);
-                    let mut b: i32 = pop(&mut stack, pc);
+                    let a: i32 = pop(&mut stack, pc);
+                    let b: i32 = pop(&mut stack, pc);
 
                     stack.push(b / a);
                 } else {
@@ -178,8 +178,8 @@ fn main() {
             }
             Some(Opcode::Mod) => {
                 if stack.len() >= 2 {
-                    let mut a: i32 = pop(&mut stack, pc);
-                    let mut b: i32 = pop(&mut stack, pc);
+                    let a: i32 = pop(&mut stack, pc);
+                    let b: i32 = pop(&mut stack, pc);
 
                     stack.push(b % a);
                 } else {
@@ -258,18 +258,69 @@ fn main() {
                     print_err("missing jumping address for JUMP", pc);
                 }
             }
+            Some(Opcode::Jump8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    pc = new_pc;
+                } else {
+                    print_err("missing jumping address for JUMP", pc);
+                }
+            }
+            Some(Opcode::Jez8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    if stack.len() >= 1 {
+                        let x: i32 = pop(&mut stack, pc);
+
+                        if x == 0 {
+                            pc = new_pc as usize;
+                        } else {
+                            pc += 2;
+                        }
+                    } else {
+                        print_err("stack too short for JEZ", pc);
+                    }
+                } else {
+                    print_err("missing jumping address for JEZ", pc);
+                }
+            }
             Some(Opcode::Jez32) => {
                 if let Some(byte_slice) = program.get(pc + 1..pc + 5) {
                     let bytes: [u8; 4] = byte_slice.try_into().unwrap();
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
                     if stack.len() >= 1 {
-                        let mut x: i32 = pop(&mut stack, pc);
+                        let x: i32 = pop(&mut stack, pc);
 
                         if x == 0 {
                             pc = new_pc as usize;
                         } else {
                             pc += 5;
+                        }
+                    } else {
+                        print_err("stack too short for JEZ", pc);
+                    }
+                } else {
+                    print_err("missing jumping address for JEZ", pc);
+                }
+            }
+            Some(Opcode::Jeq8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    if stack.len() >= 1 {
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
+
+                        if b == a {
+                            pc = new_pc as usize;
+                        } else {
+                            pc += 2;
                         }
                     } else {
                         print_err("stack too short for JEZ", pc);
@@ -284,13 +335,34 @@ fn main() {
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
                     if stack.len() >= 1 {
-                        let mut a: i32 = pop(&mut stack, pc);
-                        let mut b: i32 = pop(&mut stack, pc);
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
 
                         if b == a {
                             pc = new_pc as usize;
                         } else {
                             pc += 5;
+                        }
+                    } else {
+                        print_err("stack too short for JEZ", pc);
+                    }
+                } else {
+                    print_err("missing jumping address for JEZ", pc);
+                }
+            }
+            Some(Opcode::Jgt8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    if stack.len() >= 1 {
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
+
+                        if b > a {
+                            pc = new_pc as usize;
+                        } else {
+                            pc += 2;
                         }
                     } else {
                         print_err("stack too short for JEZ", pc);
@@ -305,13 +377,34 @@ fn main() {
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
                     if stack.len() >= 1 {
-                        let mut a: i32 = pop(&mut stack, pc);
-                        let mut b: i32 = pop(&mut stack, pc);
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
 
                         if b > a {
                             pc = new_pc as usize;
                         } else {
                             pc += 5;
+                        }
+                    } else {
+                        print_err("stack too short for JEZ", pc);
+                    }
+                } else {
+                    print_err("missing jumping address for JEZ", pc);
+                }
+            }
+            Some(Opcode::Jlt8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    if stack.len() >= 1 {
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
+
+                        if b < a {
+                            pc = new_pc as usize;
+                        } else {
+                            pc += 2;
                         }
                     } else {
                         print_err("stack too short for JEZ", pc);
@@ -326,13 +419,34 @@ fn main() {
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
                     if stack.len() >= 1 {
-                        let mut a: i32 = pop(&mut stack, pc);
-                        let mut b: i32 = pop(&mut stack, pc);
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
 
                         if b < a {
                             pc = new_pc as usize;
                         } else {
                             pc += 5;
+                        }
+                    } else {
+                        print_err("stack too short for JEZ", pc);
+                    }
+                } else {
+                    print_err("missing jumping address for JEZ", pc);
+                }
+            }
+            Some(Opcode::Jge8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    if stack.len() >= 1 {
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
+
+                        if b >= a {
+                            pc = new_pc as usize;
+                        } else {
+                            pc += 2;
                         }
                     } else {
                         print_err("stack too short for JEZ", pc);
@@ -347,13 +461,34 @@ fn main() {
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
                     if stack.len() >= 1 {
-                        let mut a: i32 = pop(&mut stack, pc);
-                        let mut b: i32 = pop(&mut stack, pc);
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
 
                         if b >= a {
                             pc = new_pc as usize;
                         } else {
                             pc += 5;
+                        }
+                    } else {
+                        print_err("stack too short for JEZ", pc);
+                    }
+                } else {
+                    print_err("missing jumping address for JEZ", pc);
+                }
+            }
+            Some(Opcode::Jle8) => {
+                if let Some(byte_slice) = program.get(pc + 1..pc + 2) {
+                    let bytes: [u8; 1] = byte_slice.try_into().unwrap();
+                    let new_pc = i8::from_le_bytes(bytes) as usize;
+
+                    if stack.len() >= 1 {
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
+
+                        if b <= a {
+                            pc = new_pc as usize;
+                        } else {
+                            pc += 2;
                         }
                     } else {
                         print_err("stack too short for JEZ", pc);
@@ -368,8 +503,8 @@ fn main() {
                     let new_pc = i32::from_le_bytes(bytes) as usize;
 
                     if stack.len() >= 1 {
-                        let mut a: i32 = pop(&mut stack, pc);
-                        let mut b: i32 = pop(&mut stack, pc);
+                        let a: i32 = pop(&mut stack, pc);
+                        let b: i32 = pop(&mut stack, pc);
 
                         if b <= a {
                             pc = new_pc as usize;
