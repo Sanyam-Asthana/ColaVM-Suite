@@ -203,10 +203,13 @@ if __name__ == "__main__":
     output_bin = filename.rsplit(".", 1)[0] + ".can"
 
     try:
+        print("Filling cola into a can..")
         binary_data = assemble(filename)
         with open(output_bin, "wb") as out_file:
             out_file.write(binary_data)
-        print(f"Fizz: Compiled to binary: {output_bin} ({len(binary_data)} bytes)")
+        print(
+            f"Fill: Compiled! Cola filled to can: {output_bin} ({len(binary_data)} bytes)"
+        )
     except Exception as e:
-        print(f"Fizz: Assembler Failure: {e}")
+        print(f"Fill: Assembler Failure: {e}")
         sys.exit(1)
