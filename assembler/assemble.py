@@ -196,17 +196,17 @@ def assemble(file_path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 assemble.py <source.cola>")
+        print("Usage: python3 <this file> <source.cola>")
         sys.exit(1)
 
     filename = sys.argv[1]
-    output_bin = filename.rsplit(".", 1)[0] + ".bin"
+    output_bin = filename.rsplit(".", 1)[0] + ".can"
 
     try:
         binary_data = assemble(filename)
         with open(output_bin, "wb") as out_file:
             out_file.write(binary_data)
-        print(f"Compiled to binary: {output_bin} ({len(binary_data)} bytes)")
+        print(f"Fizz: Compiled to binary: {output_bin} ({len(binary_data)} bytes)")
     except Exception as e:
-        print(f"Assembler Failure: {e}")
+        print(f"Fizz: Assembler Failure: {e}")
         sys.exit(1)

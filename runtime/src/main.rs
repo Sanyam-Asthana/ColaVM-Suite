@@ -7,8 +7,8 @@ mod run;
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("cola error: no input file specified");
-        eprintln!("usage: colavm <path_to_binary.bin>");
+        eprintln!("cola error: no can binary specified");
+        eprintln!("usage: colavm <path_to_binary.can>");
         process::exit(1);
     }
 
